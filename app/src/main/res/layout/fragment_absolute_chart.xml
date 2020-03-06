@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".ui.chart.charts.AbsoluteChartFragment">
+
+    <com.github.mikephil.charting.charts.CombinedChart
+        android:id="@+id/absolute_chart"
+        android:layout_width="match_parent"
+        android:layout_height="380dp">
+
+    </com.github.mikephil.charting.charts.CombinedChart>
+</FrameLayout>

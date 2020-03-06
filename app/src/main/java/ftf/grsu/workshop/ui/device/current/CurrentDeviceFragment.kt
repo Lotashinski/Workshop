@@ -6,8 +6,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 import ftf.grsu.workshop.R
+import ftf.grsu.workshop.device.Source
 import ftf.grsu.workshop.ui.DeviceViewModel
 
 class CurrentDeviceFragment : Fragment() {
@@ -27,13 +26,13 @@ class CurrentDeviceFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_current_device, container, false)
 
-        viewModel.current.observe(this, Observer {
+        viewModel.current.observe(viewLifecycleOwner, Observer {
             root.findViewById<FloatingActionButton>(R.id.button_disconnect)
                 .setOnClickListener { viewModel.disconnect() }
             root.findViewById<RecyclerView>(R.id.reecucle_view_sources).apply {
                 setHasFixedSize(true)
                 layoutManager = LinearLayoutManager(context)
-                adapter = AdapterSources(it.sources)
+                adapter = AdapterSources(it.sourcesPressure)
             }
         })
 

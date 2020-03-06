@@ -19,7 +19,7 @@ class Meter(
 
     override val power = _power.value
     override val updateCounter: LiveData<Long> = _updateCounter
-    override var sources: List<Source> = listOf(
+    override var sourcesPressure: List<ISource> = listOf(
         Source("A", true, transmitter, 1),
         Source("B", true, transmitter, 2),
         Source("C", true, transmitter, 3),
@@ -32,24 +32,20 @@ class Meter(
     private val _counter = AtomicLong(0L)
 
     fun update() {
-        Log.d("meter $address", "call update")
-
         _power.update()
-
-        val aSources = sources
+        val aSources = sourcesPressure
             .filter { source -> source.active }
-
         if (aSources.count() == 0)
             return
-
         aSources.forEach { source -> source.update() }
-        CurrentHandler().sendEmptyMessage(0)
+        CurrentHandler(_counter.getAndIncrement()).sendEmptyMessage(0)
     }
 
     @SuppressLint("HandlerLeak")
-    inner class CurrentHandler : Handler(Looper.getMainLooper()) {
+    private inner class CurrentHandler(
+        private val _counter: Long) : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
-            _updateCounter.value = _counter.incrementAndGet()
+            _updateCounter.value = _counter
         }
     }
 

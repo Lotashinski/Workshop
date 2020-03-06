@@ -48,7 +48,7 @@ class DeviceFragment : Fragment() {
             commit()
         }
 
-        viewModel.isConnect.observe(this, Observer {
+        viewModel.isConnect.observe(viewLifecycleOwner, Observer {
             when (it) {
                 true -> showCurrent()
                 false -> showList()

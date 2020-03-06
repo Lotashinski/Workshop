@@ -13,153 +13,138 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ftf.grsu.workshop.device.Meter
 import ftf.grsu.workshop.device.IMeterBuilder
-import java.util.*
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import java.util.concurrent.*
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
 class BtRequestService : Service() {
+
+    private companion object Constants {
+        private const val PERIOD = 500L
+    }
 
     internal inner class Binder : android.os.Binder() {
         val service: BtRequestService
             get() = this@BtRequestService
     }
 
-    private inner class UpdateBoundedTask : TimerTask() {
-
-        private lateinit var _connectors: CopyOnWriteArrayList<IMeterBuilder>
-
-        override fun run() {
-            val c = _bluetooth.bondedDevices
-                .map { d -> MeterConnector(d) }
-                .toList()
-
-            _connectors = CopyOnWriteArrayList(c)
-            BuildersHandler().sendEmptyMessage(0)
-        }
-
-        @SuppressLint("HandlerLeak")
-        private inner class BuildersHandler : android.os.Handler(Looper.getMainLooper()) {
-
-            override fun handleMessage(msg: Message) {
-                _meterBuilders.value = _connectors
-            }
-        }
-    }
-
-    private inner class UpdateCurrentTask : TimerTask() {
-        override fun run() {
-            _lock.lock()
-            Log.d("bt.request.timer", "call update()")
-            _meter.value?.run {
-                try {
-                    this.update()
-                } catch (e: Exception) {
-                    Log.e("call.update", "call after close", e)
-                }
-
-            }
-            _lock.unlock()
-        }
-
-        override fun cancel(): Boolean {
-            _meter.value?.close()
-            return super.cancel()
+    @SuppressLint("HandlerLeak")
+    private inner class BuildersHandler(
+        private val _builders: List<IMeterBuilder>
+    ) : android.os.Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            Log.d("set list", "1")
+            _meterBuilders.value = _builders
         }
     }
 
     @SuppressLint("HandlerLeak")
     private inner class OnLoadHandler(private val onLoad: Boolean) :
         Handler(Looper.getMainLooper()) {
-
         override fun handleMessage(msg: Message) {
             _onLoad.value = onLoad
         }
     }
 
     @SuppressLint("HandlerLeak")
-    private inner class ConnectHandler : Handler(Looper.getMainLooper()) {
+    private inner class ConnectHandler(
+        private val _applicant: Meter
+    ) : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
-            _lock.lock()
             _meter.value = _applicant
-            _lock.unlock()
-            _current = _taskUpdateCurrent
-            _timer.schedule(_current, 0L, PERIOD)
             _isConnect.value = true
         }
     }
 
-    companion object Constants {
-        private const val PERIOD = 300L
+    @SuppressLint("HandlerLeak")
+    private inner class ConnectValueHandler(private val value: Boolean) :
+        Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            _isConnect.value = value
+        }
     }
 
-    private val _meterBuilders = MutableLiveData<List<IMeterBuilder>>(listOf())
-    private val _bluetooth: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+//    private val _bluetooth: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val _binder = Binder()
+
+    private val _meterBuilders = MutableLiveData<List<IMeterBuilder>>(listOf())
     private val _meter = MutableLiveData<Meter>()
     private val _isConnect = MutableLiveData<Boolean>()
-    private val _timer = Timer()
     private val _onLoad = MutableLiveData<Boolean>(false)
     private val _lock: Lock = ReentrantLock()
 
-    private lateinit var _applicant: Meter
+    private val _executor = Executors
+        .newScheduledThreadPool(
+            2,
+            ThreadFactory("bt.request", Thread.UncaughtExceptionHandler { t, e ->
 
-    private val _taskUpdateCurrent
-        get() = UpdateCurrentTask()
-
-    private val _taskUpdateBounded
-        get() = UpdateBoundedTask()
+            })
+        )
 
     val meterBuilders: LiveData<List<IMeterBuilder>> = _meterBuilders
+
     val currentMeter: LiveData<Meter> = _meter
     val isConnect: LiveData<Boolean> = _isConnect
     val onLoad: LiveData<Boolean> = _onLoad
 
-    private lateinit var _current: UpdateCurrentTask
-
-    init {
-        _timer.schedule(_taskUpdateBounded, 0L, 1000L)
+    override fun onBind(intent: Intent): IBinder {
+        Log.d("bt.request", "call onBind")
+        return _binder
     }
 
-    override fun onBind(intent: Intent): IBinder = _binder
+    fun updateBounded() {
+        val c = listOf(PlaceboBuilder())
+//        Log.d("bt.request", "update bounded")
+//        val c = _bluetooth.bondedDevices
+//            .map { d -> MeterConnector(d, PERIOD, _executor) }
+//            .toList()
+        BuildersHandler(c).sendEmptyMessage(0)
+    }
 
-    fun connect(IMeterBuilder: IMeterBuilder) {
-        if (isConnect.value == true)
-            disconnect()
+    private var _scheduledThread: ScheduledFuture<*>? = null
 
-        _onLoad.value = true
+    fun connect(meterBuilder: IMeterBuilder) {
+        disconnect()
 
-        Thread(Runnable {
+        _executor.schedule({
             try {
+                _lock.lock()
                 OnLoadHandler(true).sendEmptyMessage(0)
-
-                Log.d("bt.request.service", "connect to " + IMeterBuilder.address)
+                Log.d("bt.request.service", "connect to " + meterBuilder.address)
                 val status = _isConnect.value ?: false
 
                 if (status)
                     throw DeviceIsConnectException()
 
-                _lock.lock()
-                _applicant = IMeterBuilder.meter
-                ConnectHandler()
+                val applicant = meterBuilder.meter
+                ConnectHandler(applicant)
                     .sendEmptyMessage(0)
 
-            } catch (e: Exception) {
+                _scheduledThread = _executor
+                    .scheduleWithFixedDelay(
+                        MeterUpdateRunnable(applicant),
+                        0,
+                        PERIOD,
+                        TimeUnit.MILLISECONDS
+                    )
+            }
+            // TODO invalid device exception
+            catch (e: Exception) {
                 Log.e("bt.request.exception", "exception on connect", e)
                 disconnect()
             } finally {
                 _lock.unlock()
                 OnLoadHandler(false).sendEmptyMessage(0)
             }
-        })
-            .start()
+        }, 0, TimeUnit.MILLISECONDS)
     }
 
     fun disconnect() {
-        _current.cancel()
-        _isConnect.value = false
+        _lock.lock()
+        ConnectValueHandler(false).sendEmptyMessage(0)
+        _scheduledThread?.cancel(false)
+        _meter.value?.close()
+        _lock.unlock()
     }
 
     override fun onCreate() {
@@ -170,6 +155,7 @@ class BtRequestService : Service() {
     override fun onDestroy() {
         disconnect()
         Log.d("bt.request.service", "call destroy")
+        _executor.shutdownNow()
         super.onDestroy()
     }
 }

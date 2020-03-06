@@ -1,4 +1,4 @@
-package ftf.grsu.workshop.ui.chart
+package ftf.grsu.workshop.ui.chart.charts
 
 import android.content.res.Resources
 import com.github.mikephil.charting.components.AxisBase
@@ -11,22 +11,25 @@ import java.text.DecimalFormat
 class ValueFormatter(
     private val res: Resources
 ) : ValueFormatter() {
-    private val barFormat = DecimalFormat("###,##0.0")
+    private val barFormat = DecimalFormat("###,##0.00")
     private val axisFormat = DecimalFormat("###,##0")
 
     override fun getBarLabel(barEntry: BarEntry?): String {
-        var y : Float = barEntry?.y ?: 0F
+        val y : Float = barEntry?.y ?: 0F
 
-        if (y > 1_000_000F)
-            y /= 1_000_000F
-        else if (y > 1_000F)
-            y /= 1_000F
-
-        return barFormat.format(y)
+        return barFormat.format(y / 1000)
     }
 
     override fun getAxisLabel(value: Float, axis: AxisBase?): String {
         var y : Float = value
+
+        val prefix = when{
+            y >= 0 -> ""
+            else -> {
+                y *= -1
+                "-"
+            }
+        }
 
         val postFix: String = when {
             y >= 1_000_000F -> res.getString(R.string.mega)
@@ -39,6 +42,6 @@ class ValueFormatter(
         else if (y >= 1_000F)
             y /= 1_000F
 
-        return axisFormat.format(y) + " $postFix"
+        return prefix + axisFormat.format(y) + " $postFix"
     }
 }

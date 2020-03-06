@@ -5,46 +5,52 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ftf.grsu.workshop.device.ITransmitter
-import java.util.concurrent.Executors
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.locks.ReentrantLock
 
+@ExperimentalUnsignedTypes
 class Transmitter(
-    private val bluetoothSocket: BluetoothSocket
+    private val _bluetoothSocket: BluetoothSocket,
+    private val _timeout: Long,
+    private val _executorService: ExecutorService
 ) : ITransmitter {
 
     companion object Constants {
         private val LOCK = ReentrantLock()
+        private const val TIMEOUT_CONNECT: Long = 10000
     }
 
     private val _level = MutableLiveData<Long>(50L)
-    private val _executor = Executors.newSingleThreadExecutor()
 
     init {
-        Log.d("transmitter", "connect")
-
-        LOCK.lock()
-        if (!bluetoothSocket.isConnected)
-            bluetoothSocket.connect()
-
-        bluetoothSocket.inputStream.read(ByteArray(8))
-
-        LOCK.unlock()
+        try {
+            LOCK.lock()
+            _executorService.submit {
+                Log.d("transmitter", "call connect")
+                if (!_bluetoothSocket.isConnected)
+                    _bluetoothSocket.connect()
+                _bluetoothSocket.inputStream.read(ByteArray(8))
+            }.get(TIMEOUT_CONNECT, TimeUnit.MILLISECONDS)
+        } catch (e: TimeoutException) {
+            throw DeviceConnectTimeoutException()
+        } finally {
+            LOCK.unlock()
+        }
     }
 
     override val signalLevelLive: LiveData<Long>
         get() = _level
 
-
-    @ExperimentalUnsignedTypes
-    override fun getValue(uid: Byte): Long {
+    private fun call(uid: Byte, timeoutMilliseconds: Long): Long {
+        Log.d("transmitter", "call value $uid")
         try {
-            return _executor.submit<Long> {
-                LOCK.lock()
-                Log.d("transmitter", "get value $uid")
-                val inputStream = bluetoothSocket.inputStream
-                val outputStream = bluetoothSocket.outputStream
+            LOCK.lock()
+            return _executorService.submit<Long> {
+                Log.d("transmitter.schedule", "call $uid")
+                val inputStream = _bluetoothSocket.inputStream
+                val outputStream = _bluetoothSocket.outputStream
                 val buffer = ByteArray(16)
                 var counter = 0
                 var inputVal = 0L
@@ -57,26 +63,26 @@ class Transmitter(
                         counter++
                     }
                 }
-                Log.d("transmitter", "$uid result $inputVal")
-                LOCK.unlock()
+                Log.d("transmitter", "($uid) -> $inputVal")
                 return@submit inputVal
             }
-                .get(500, TimeUnit.MILLISECONDS)
+                .get(timeoutMilliseconds, TimeUnit.MILLISECONDS)
         } catch (eTimeOut: TimeoutException) {
             Log.e("transmitter", "timeout", eTimeOut)
-            LOCK.unlock()
             throw eTimeOut
+        } finally {
+            LOCK.unlock()
         }
     }
+
+    override fun getValue(uid: Byte): Long = call(uid, _timeout)
 
     override fun close() {
         LOCK.lock()
         Log.d("transmitter", "close")
-        _executor.shutdownNow()
-        bluetoothSocket.inputStream.close()
-        bluetoothSocket.outputStream.close()
-        bluetoothSocket.close()
-
+        _bluetoothSocket.inputStream.close()
+        _bluetoothSocket.outputStream.close()
+        _bluetoothSocket.close()
         LOCK.unlock()
     }
 }

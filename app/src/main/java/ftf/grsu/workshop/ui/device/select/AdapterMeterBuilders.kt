@@ -7,8 +7,8 @@ import ftf.grsu.workshop.R
 import ftf.grsu.workshop.device.IMeterBuilder
 
 class AdapterMeterBuilders(
-    private val builderIS: List<IMeterBuilder>,
-    private val callback: (IMeterBuilder) -> Unit
+    private var _builders: List<IMeterBuilder>,
+    private val _callback: (IMeterBuilder) -> Unit
 ) : RecyclerView.Adapter<ViewHolderMeterBuilders>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolderMeterBuilders {
@@ -18,8 +18,8 @@ class AdapterMeterBuilders(
         return ViewHolderMeterBuilders(root)
     }
 
-    override fun getItemCount(): Int = builderIS.size
+    override fun getItemCount(): Int = _builders.size
 
     override fun onBindViewHolder(holder: ViewHolderMeterBuilders, position: Int) =
-        holder.setMeter(builderIS[position], callback)
+        holder.setMeter(_builders[position], _callback)
 }

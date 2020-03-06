@@ -6,7 +6,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,6 +17,7 @@ import ftf.grsu.workshop.ui.DeviceViewModel
 
 class ListOfBuildersFragment : Fragment() {
     private val viewModel: DeviceViewModel by activityViewModels()
+    private lateinit var _recycleView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -25,14 +25,19 @@ class ListOfBuildersFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_list_of_builders, container, false)
 
-        viewModel.builders.observe(this, Observer {
-            root.findViewById<RecyclerView>(R.id.recucler_list_builders).apply {
+        viewModel.updateBuilders()
+
+        _recycleView = root.findViewById(R.id.recycler_list_builders)
+
+        viewModel.builders.observe(viewLifecycleOwner, Observer {
+            _recycleView.apply {
                 setHasFixedSize(true)
                 layoutManager = LinearLayoutManager(context)
                 adapter =
                     AdapterMeterBuilders(it) { meterBuilder -> viewModel.connect(meterBuilder) }
             }
         })
+
         return root
     }
 }

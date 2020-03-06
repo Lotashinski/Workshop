@@ -3,12 +3,9 @@ package ftf.grsu.workshop.ui.device.current
 import android.view.View
 import android.widget.Switch
 import android.widget.TextView
-import androidx.appcompat.widget.SwitchCompat
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import ftf.grsu.workshop.R
-import ftf.grsu.workshop.device.Source
+import ftf.grsu.workshop.device.ISource
 
 class ViewHolderSource(
     view: View
@@ -17,10 +14,10 @@ class ViewHolderSource(
     private val sourceText: TextView = view.findViewById(R.id.text_channel_title)
     private val activitySwitch: Switch = view.findViewById(R.id.switch_activity)
 
-    fun setSource(source: Source) {
+    fun setSource(source: ISource) {
         sourceText.text = source.title
         activitySwitch.isChecked = source.active
-        activitySwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+        activitySwitch.setOnCheckedChangeListener { _, isChecked ->
             source.active = isChecked
         }
     }

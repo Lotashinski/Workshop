@@ -11,7 +11,7 @@ interface IMeter : Closeable {
 
     val updateCounter: LiveData<Long>
 
-    var sources: List<Source>
+    var sourcesPressure: List<ISource>
 
     val title: String
 }

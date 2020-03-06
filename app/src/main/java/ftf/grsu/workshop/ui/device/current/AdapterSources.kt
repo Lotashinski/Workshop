@@ -4,10 +4,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import ftf.grsu.workshop.R
-import ftf.grsu.workshop.device.Source
+import ftf.grsu.workshop.device.ISource
 
 class AdapterSources(
-    private val sources: List<Source>
+    private val sources: List<ISource>
 ) : RecyclerView.Adapter<ViewHolderSource>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolderSource {
@@ -20,4 +20,6 @@ class AdapterSources(
 
     override fun onBindViewHolder(holder: ViewHolderSource, position: Int) =
         holder.setSource(sources[position])
+
+
 }

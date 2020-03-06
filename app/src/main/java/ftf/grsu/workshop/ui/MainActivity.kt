@@ -18,6 +18,8 @@ import com.google.android.material.navigation.NavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.view.Menu
+import android.view.View
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
 import ftf.grsu.workshop.services.BtRequestService
@@ -25,31 +27,28 @@ import androidx.lifecycle.Observer
 import ftf.grsu.workshop.R
 
 class MainActivity : AppCompatActivity() {
-    private val viewModel: DeviceViewModel by viewModels()
-    private val serviceConnector = BtRequestConnector()
+    private val _viewModel: DeviceViewModel by viewModels()
+    private val _serviceConnector = BtRequestConnector()
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var _appBarConfiguration: AppBarConfiguration
+    private lateinit var _loadingView: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val bluetoothAdapter  = BluetoothAdapter.getDefaultAdapter()
-
-        if (bluetoothAdapter == null){
-            Toast
-                .makeText(this, R.string.bt_adapter_not_found, Toast.LENGTH_SHORT)
-                .show()
-
-            finish()
-        }
-
-        if (!bluetoothAdapter.isEnabled) {
-            val intentEnableBt = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(intentEnableBt, 1)
-        }
-
-        val intent = Intent(this, BtRequestService::class.java)
-        bindService(intent, serviceConnector, Context.BIND_AUTO_CREATE)
+//        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+//
+//        if (bluetoothAdapter == null) {
+//            Toast
+//                .makeText(this, R.string.bt_adapter_not_found, Toast.LENGTH_SHORT)
+//                .show()
+//            finish()
+//        }
+//
+//        if (!bluetoothAdapter.isEnabled) {
+//            val intentEnableBt = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+//            startActivityForResult(intentEnableBt, 1)
+//        }
 
         setContentView(R.layout.activity_main)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
@@ -58,15 +57,28 @@ class MainActivity : AppCompatActivity() {
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
         val navController = findNavController(R.id.nav_host_fragment)
-        appBarConfiguration = AppBarConfiguration(
+
+        _appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_chart,
                 R.id.nav_device,
                 R.id.nav_support
             ), drawerLayout
         )
-        setupActionBarWithNavController(navController, appBarConfiguration)
+
+        _loadingView = findViewById(R.id.load_view)
+        _viewModel.loading.observe(this, Observer {
+            _loadingView.visibility = when(it){
+                true -> View.VISIBLE
+                false-> View.INVISIBLE
+            }
+        })
+        setupActionBarWithNavController(navController, _appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        Log.d("activity.root", "bind intent")
+        val intent = Intent(this, BtRequestService::class.java)
+        bindService(intent, _serviceConnector, Context.BIND_AUTO_CREATE)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -76,7 +88,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment)
-        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+        return navController.navigateUp(_appBarConfiguration) || super.onSupportNavigateUp()
     }
 
     inner class BtRequestConnector : ServiceConnection {
@@ -91,15 +103,19 @@ class MainActivity : AppCompatActivity() {
 
                 btRequestService.isConnect.observe(this@MainActivity,
                     Observer {
-                        viewModel.setIsConnect(it)
+                        _viewModel.setIsConnect(it)
                     })
                 btRequestService.meterBuilders.observe(this@MainActivity,
-                    Observer { viewModel.setBuilders(it) })
+                    Observer { _viewModel.setBuilders(it) })
                 btRequestService.currentMeter.observe(this@MainActivity,
-                    Observer { viewModel.setCurrent(it) })
+                    Observer { _viewModel.setCurrent(it) })
+                btRequestService.onLoad.observe(this@MainActivity,
+                    Observer { _viewModel.setIsLoading(it) })
 
-                viewModel.connect = { meterBuilder -> btRequestService.connect(meterBuilder) }
-                viewModel.disconnect = { btRequestService.disconnect() }
+                _viewModel.connect = { meterBuilder -> btRequestService.connect(meterBuilder) }
+                _viewModel.disconnect = { btRequestService.disconnect() }
+                _viewModel.updateBuilders = { btRequestService.updateBounded() }
+                _viewModel.updateBuilders()
             }
         }
     }
