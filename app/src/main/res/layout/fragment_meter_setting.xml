@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp"
+    android:orientation="vertical"
+    tools:context=".ui.fragment.device.meter.MeterSettingFragment">
+
+
+    <RadioGroup
+        android:layout_margin="@dimen/item_padding"
+        android:padding="@dimen/item_padding"
+        android:background="@drawable/bc_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/radio_button_average"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/item_padding"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/chart_average_radio_button"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radio_button_absolute"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/item_padding"
+            android:checked="true"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/chart_absolute_radio_button"
+            android:textSize="18sp" />
+
+    </RadioGroup>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:background="@drawable/bc_item"
+        android:id="@+id/recycler_channel_set"
+        android:layout_margin="@dimen/item_padding"
+        android:padding="@dimen/item_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+</LinearLayout>

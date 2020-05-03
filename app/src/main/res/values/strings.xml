@@ -1,41 +1,35 @@
 <resources>
     <string name="app_name">Workshop</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Workshop project</string>
-    <string name="nav_header_subtitle">ftf.grsu.by 2020</string>
-    <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
 
+    <string name="message_device_connect">Device connect</string>
+    <string name="message_device_disconnect">Device disconnect</string>
 
-    <string name="menu_title_help">Help</string>
-    <string name="menu_chart">Work</string>
-    <string name="menu_device">Device</string>
-    <string name="menu_tools">Tools</string>
-    <string name="menu_support">Support</string>
+    <string name="device_pressure_meter">Pressure meter(x6)</string>
+    <string name="device_scanner">Search devices</string>
 
+    <string name="channel">Channel</string>
+    <string name="channel1">Channel A</string>
+    <string name="channel2">Channel B</string>
+    <string name="channel3">Channel C</string>
+    <string name="channel4">Channel D</string>
+    <string name="channel5">Channel E</string>
+    <string name="channel6">Channel F</string>
 
-    <string name="loading">Loading . . . </string>
-
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="activity">Activity</string>
-    <string name="text_select_device">Select device</string>
-    <string name="text_find_devices">find devices:</string>
-    <string name="device_title_status_disconnect">Please select device</string>
-    <string name="channel">"Channel: "</string>
-    <string name="text_device_disconnect">Device disconnect!</string>
-
+    <string name="chart_absolute_radio_button">Absolute chart</string>
+    <string name="chart_average_radio_button">Average chart</string>
+    <string name="chart_average">Average</string>
+    <string name="chart_channels">Channels</string>
     <string name="mega">M</string>
     <string name="kilo">k</string>
-
     <string name="pascal_short">Pa</string>
-    <string name="pascal_long">pascal</string>
+    <color name="colorText">#00BCD4</color>
 
-    <string name="bt_adapter_not_found">Bluetooth adapter not found</string>
-    <string name="bt_alert_title">Bluetooth is not included</string>
-    <string name="bt_alert_body">To use the app, you must enable Bluetooth. Enable?</string>
-    <string name="bt_was_started">Bluetooth enable</string>
+    <array name="tabs">
+        <item>Chart</item>
+        <item>Setting</item>
+    </array>
 
-    <string name="button_ok">OK</string>
-    <string name="button_cancel">Cancel</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>
