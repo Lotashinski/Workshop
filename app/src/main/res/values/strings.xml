@@ -2,7 +2,10 @@
     <string name="app_name">Workshop</string>
 
     <string name="message_device_connect">Device connect</string>
+    <string name="message_device_connect_exception">Device connect error</string>
     <string name="message_device_disconnect">Device disconnect</string>
+    <string name="message_device_transmit_error">Transmit error</string>
+    <string name="message_device_connection_lost">Connection lost</string>
 
     <string name="device_pressure_meter">Pressure meter(x6)</string>
     <string name="device_scanner">Search devices</string>
@@ -22,14 +25,10 @@
     <string name="mega">M</string>
     <string name="kilo">k</string>
     <string name="pascal_short">Pa</string>
-    <color name="colorText">#00BCD4</color>
 
     <array name="tabs">
         <item>Chart</item>
         <item>Setting</item>
     </array>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

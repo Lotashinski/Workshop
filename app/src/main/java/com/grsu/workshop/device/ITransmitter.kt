@@ -1,4 +1,4 @@
-package com.grsu.workshop.device.meter
+package com.grsu.workshop.device
 
 import java.io.Closeable
 

@@ -2,6 +2,7 @@ package com.grsu.workshop.device
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.util.Log
 import com.grsu.workshop.device.meter.Meter
 
 class BluetoothDevices(private val _bluetooth: BluetoothAdapter) {
@@ -15,9 +16,16 @@ class BluetoothDevices(private val _bluetooth: BluetoothAdapter) {
             get() = _btDevice.address
 
         override fun connect(callback: (IDevice) -> Unit) {
-            val _transmitter = BluetoothTransmitter(_btDevice)
-            val meter = Meter(_transmitter)
-            callback(meter)
+            try {
+                Log.d("builder", "create call")
+                val transmitter = BluetoothTransmitter(_btDevice)
+                Log.d("builder", "transmitter build")
+                val meter = Meter(transmitter)
+                callback(meter)
+            }catch (t: Throwable){
+                Log.e("device_builder", "build exception", t)
+                throw DeviceConnectException(t)
+            }
         }
     }
 

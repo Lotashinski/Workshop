@@ -3,7 +3,6 @@ package com.grsu.workshop.device
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.util.Log
-import com.grsu.workshop.device.meter.ITransmitter
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -12,11 +11,11 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.locks.ReentrantLock
 
-class BluetoothTransmitter(private val _btDevice: BluetoothDevice) :
+class BluetoothTransmitter(btDevice: BluetoothDevice) :
     ITransmitter {
 
     companion object{
-        private val TIMEOUT = 135L
+        private val TIMEOUT = 250L
     }
 
     private val _lock = ReentrantLock()
@@ -27,19 +26,17 @@ class BluetoothTransmitter(private val _btDevice: BluetoothDevice) :
     private val _outputStream: OutputStream
 
     init {
-        val uids = _btDevice.uuids ?: throw UnsupportedDeviceException()
+        val uids = btDevice.uuids ?: throw UnsupportedDeviceException()
         val uid = uids.first()
-        _socket = _btDevice.createRfcommSocketToServiceRecord(uid.uuid)
-
+        _socket = btDevice.createRfcommSocketToServiceRecord(uid.uuid)
 
         try {
             if (!_socket.isConnected) {
                 _socket.connect()
             }
         }catch (io: IOException){
-            Log.d("bt_transmitter", "connect exception", io)
+            Log.e("bt_transmitter", "connect exception", io)
         }
-
 
         _inputStream = _socket.inputStream
         _outputStream = _socket.outputStream
@@ -51,8 +48,6 @@ class BluetoothTransmitter(private val _btDevice: BluetoothDevice) :
         val buffer = ByteArray(16)
         var counter = 0
         var inputVal = 0L
-
-        Log.d("transmitter", "available = " + _inputStream.available())
         for (i in 0 until _inputStream.available())
             _inputStream.read()
 
@@ -68,21 +63,27 @@ class BluetoothTransmitter(private val _btDevice: BluetoothDevice) :
                 counter++
             }
         }
-        Log.d("transmitter", "input [$inputVal]")
         return inputVal
     }
 
     override fun getPackage(uid: Byte): Long {
+        val c = System.currentTimeMillis();
         try{
             _lock.lock()
-            return _executor.submit<Long>{
+
+            val r = _executor.submit<Long>{
                 return@submit doRequest(uid)
             }.get(TIMEOUT, TimeUnit.MILLISECONDS)
+            Log.d("transmitter", "$uid time " + ( System.currentTimeMillis() - c))
+
+            return r;
         }catch (eTimeOut: TimeoutException){
+            Log.e("transmitter", "timeout", eTimeOut);
             throw RequestTimeoutException(eTimeOut)
         }finally {
             _lock.unlock()
         }
+
     }
 
     override fun close() {

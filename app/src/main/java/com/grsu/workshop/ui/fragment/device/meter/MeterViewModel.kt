@@ -3,7 +3,6 @@ package com.grsu.workshop.ui.fragment.device.meter
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,18 +11,17 @@ import com.grsu.workshop.R
 import com.grsu.workshop.device.meter.IBmpSource
 import com.grsu.workshop.device.meter.Meter
 import com.grsu.workshop.device.meter.IPowerSource
-import io.reactivex.rxjava3.functions.Consumer
 
 class MeterViewModel : ViewModel() {
 
     companion object Constants {
         val COLORS = mapOf(
-            "A" to R.color.colorA,
-            "B" to R.color.colorB,
-            "C" to R.color.colorC,
-            "D" to R.color.colorD,
-            "E" to R.color.colorE,
-            "F" to R.color.colorF
+            "A" to R.color.color_a,
+            "B" to R.color.color_b,
+            "C" to R.color.color_c,
+            "D" to R.color.color_d,
+            "E" to R.color.color_e,
+            "F" to R.color.color_f
         )
     }
 

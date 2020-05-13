@@ -1,6 +1,6 @@
 package com.grsu.workshop.device.meter
 
-import android.util.Log
+import com.grsu.workshop.device.ITransmitter
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 
@@ -20,7 +20,6 @@ internal class PowerSource(transmitter: ITransmitter): IPowerSource {
 
     override fun update() {
         _value = _transmitter.getPackage(0)
-        Log.d("power_source", "update value = $_value")
         _isUpdateObservable.onNext(this)
     }
 

@@ -113,7 +113,7 @@ class MeterAbsoluteFragment : Fragment() {
             Entry(sources.size.toFloat() - 0.5f, average)
         )
         val lineDataSet = LineDataSet(lineEntries, resources.getString(R.string.chart_average))
-        lineDataSet.color = resources.getColor(R.color.colorAverage)
+        lineDataSet.color = resources.getColor(R.color.color_average)
         lineDataSet.lineWidth = 2.5f
         lineDataSet.setDrawCircles(false)
         lineDataSet.valueFormatter =
@@ -125,7 +125,7 @@ class MeterAbsoluteFragment : Fragment() {
 
         val cd = CombinedData()
         val barData = BarData(barDataSet)
-        barData.setValueTextColor(R.color.colorText)
+        barData.setValueTextColor(R.color.color_text)
 
         cd.setData(barData)
         cd.setData(lineData)

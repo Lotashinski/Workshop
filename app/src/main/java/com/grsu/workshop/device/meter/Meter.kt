@@ -2,8 +2,10 @@ package com.grsu.workshop.device.meter
 
 import android.util.Log
 import com.grsu.workshop.device.IDevice
+import com.grsu.workshop.device.ITransmitter
 import com.grsu.workshop.device.IUiAdapter
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.subjects.AsyncSubject
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import java.io.IOException
 import java.util.concurrent.Executors
@@ -17,7 +19,8 @@ class Meter(transmitter: ITransmitter) : IDevice {
     }
 
     private val _lock = ReentrantLock()
-    private val _isClose = BehaviorSubject.create<IDevice>()
+
+    private val _isClose = AsyncSubject.create<IDevice>()
 
     override val isCloseable: Observable<IDevice> = _isClose
 
@@ -56,6 +59,8 @@ class Meter(transmitter: ITransmitter) : IDevice {
 
     fun update() {
         try {
+            Log.d("meter", "call update")
+            val cl = System.currentTimeMillis();
             _lock.lock()
             _executor.submit {
                 bmpSources
@@ -64,15 +69,17 @@ class Meter(transmitter: ITransmitter) : IDevice {
                 powerSource.update()
                 _updateObservable.onNext(this)
             }.get(REQUEST_TIMEOUT, TimeUnit.MILLISECONDS)
+            Log.d("meter", "time " + (System.currentTimeMillis() - cl))
         } catch (t: Throwable) {
+            close()
             Log.e("meter", "exception", t)
-            _updateObservable.onError(t)
         }finally {
             _lock.unlock()
         }
     }
 
     override fun close() {
+        Log.d("meter", "call close")
         try {
             _lock.lock()
             _executor.shutdown()

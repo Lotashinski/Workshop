@@ -1,21 +1,26 @@
 package com.grsu.workshop.service
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.grsu.workshop.R
+import com.grsu.workshop.device.DeviceConnectException
 import com.grsu.workshop.device.IDevice
 import com.grsu.workshop.device.IDeviceBuilder
 import com.grsu.workshop.device.scanner.ScannerDevice
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
-import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import java.util.concurrent.locks.ReentrantLock
+
 
 class ConnectService : Service() {
 
@@ -45,6 +50,7 @@ class ConnectService : Service() {
     override fun onBind(intent: Intent): IBinder = ConnectServiceBinder()
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun bindDevice(builder: IDeviceBuilder) {
         Log.d("service", "connect to device")
         _isLoadObservable.onNext(true)
@@ -57,20 +63,26 @@ class ConnectService : Service() {
                         _deviceObservable.onNext(d)
                         _isLoadObservable.onNext(false)
                         _messageObservable.onNext(R.string.message_device_connect)
+                        d.isCloseable.subscribe {
+                            Log.d("c_service", "observe close")
+                            _deviceObservable.onNext(ScannerDevice())
+                            _messageObservable.onNext(R.string.message_device_disconnect)
+                        }
                     }
-                } catch (t: Throwable) {
-                    try {
-                        _deviceObservable.value.close()
-                    } catch (tr: Throwable) {
-                        //ignore
-                    }
+                } catch (t: DeviceConnectException) {
+                    Log.e("c_service", "e", t)
+                    _messageObservable.onNext(R.string.message_device_connect_exception)
+                    _isLoadObservable.onNext(false)
+                    _deviceObservable.value.close()
                     _deviceObservable.onNext(ScannerDevice())
                 }
+
             }.get(10, TimeUnit.SECONDS)
         } catch (t: Throwable) {
-            // timeout or ioe
+            Log.e("c_service", "e", t)
+            _isLoadObservable.onNext(false)
             _deviceObservable.onNext(ScannerDevice())
-        }finally {
+        } finally {
             _lock.unlock()
         }
 

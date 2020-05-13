@@ -1,6 +1,6 @@
 package com.grsu.workshop.device.meter
 
-import android.util.Log
+import com.grsu.workshop.device.ITransmitter
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 
@@ -31,7 +31,6 @@ internal class BmpSource(override val uid: Byte, transmitter: ITransmitter): IBm
     @ExperimentalUnsignedTypes
     override fun update() {
         _value = _transmitter.getPackage(uid)
-        Log.d("bmp_source_$uid", "update value = $_value")
     }
 
     override fun close() {

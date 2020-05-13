@@ -43,7 +43,7 @@ class MeterUpdater(meter: Meter) : Closeable {
     fun startTransmit() {
         _task = _executor.scheduleAtFixedRate({
             update()
-        }, 0, PERIOD, TimeUnit.MILLISECONDS)
+        }, PERIOD, PERIOD, TimeUnit.MILLISECONDS)
     }
 
     override fun close() {
