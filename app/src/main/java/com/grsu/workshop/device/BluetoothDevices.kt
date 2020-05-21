@@ -10,10 +10,10 @@ class BluetoothDevices(private val _bluetooth: BluetoothAdapter) {
     class DeviceBuilder(private val _btDevice: BluetoothDevice) : IDeviceBuilder {
 
         override val title: String
-            get() = _btDevice.name
+            get() = _btDevice.name ?: ""
 
         override val address: String
-            get() = _btDevice.address
+            get() = _btDevice.address ?: ""
 
         override fun connect(callback: (IDevice) -> Unit) {
             try {

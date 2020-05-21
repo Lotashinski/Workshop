@@ -30,8 +30,19 @@
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/item_padding"
             android:checked="true"
+            android:focusable="auto"
             android:fontFamily="sans-serif-medium"
             android:text="@string/chart_absolute_radio_button"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radio_button_temperature"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/item_padding"
+            android:checked="false"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/chart_temperature_radio_button"
             android:textSize="18sp" />
 
     </RadioGroup>

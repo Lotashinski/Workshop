@@ -3,12 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp"
-    tools:context=".ui.fragment.device.meter.MeterChartFragment" >
+    tools:context=".ui.fragment.device.meter.MeterTemperatureFragment">
 
-    <FrameLayout
-        android:background="@drawable/bc_item"
-        android:id="@+id/meter_chart"
+    <com.github.mikephil.charting.charts.CombinedChart
+        android:id="@+id/chart_temperature"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 

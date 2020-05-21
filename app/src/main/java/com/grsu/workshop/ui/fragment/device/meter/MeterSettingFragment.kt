@@ -18,6 +18,7 @@ class MeterSettingFragment : Fragment() {
     private lateinit var _root: View
     private lateinit var _averageButton: RadioButton
     private lateinit var _absoluteButton: RadioButton
+    private lateinit var _temperatureButton: RadioButton
     private lateinit var _recyclerView: RecyclerView
     private val _meterViewModel by activityViewModels<MeterViewModel>()
 
@@ -29,12 +30,18 @@ class MeterSettingFragment : Fragment() {
         _root = inflater.inflate(R.layout.fragment_meter_setting, container, false)
         _averageButton = _root.findViewById(R.id.radio_button_average)
         _absoluteButton = _root.findViewById(R.id.radio_button_absolute)
+        _temperatureButton = _root.findViewById(R.id.radio_button_temperature)
         _recyclerView = _root.findViewById(R.id.recycler_channel_set)
         _recyclerView.setHasFixedSize(true)
 
         _absoluteButton.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked)
                 _meterViewModel.selectTab(MeterViewModel.Tab.ABSOLUTE)
+        }
+
+        _temperatureButton.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked)
+                _meterViewModel.selectTab(MeterViewModel.Tab.TEMPERATURE)
         }
 
         _averageButton.setOnCheckedChangeListener { _, isChecked ->

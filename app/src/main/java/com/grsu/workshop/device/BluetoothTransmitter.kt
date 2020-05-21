@@ -44,6 +44,7 @@ class BluetoothTransmitter(btDevice: BluetoothDevice) :
     }
 
 
+    @ExperimentalUnsignedTypes
     private fun doRequest(uid: Byte): Long{
         val buffer = ByteArray(16)
         var counter = 0
@@ -57,7 +58,6 @@ class BluetoothTransmitter(btDevice: BluetoothDevice) :
             val bytesCount = _inputStream.read(buffer)
             for (i in 0 until bytesCount) {
                 if (counter < 8) {
-
                     inputVal += buffer[i].toUByte().toLong() shl (8 * counter)
                 }
                 counter++
@@ -66,6 +66,7 @@ class BluetoothTransmitter(btDevice: BluetoothDevice) :
         return inputVal
     }
 
+    @ExperimentalUnsignedTypes
     override fun getPackage(uid: Byte): Long {
         val c = System.currentTimeMillis();
         try{

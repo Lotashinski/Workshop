@@ -18,17 +18,22 @@
     <string name="channel5">Channel E</string>
     <string name="channel6">Channel F</string>
 
-    <string name="chart_absolute_radio_button">Absolute chart</string>
-    <string name="chart_average_radio_button">Average chart</string>
+    <string name="chart_absolute_radio_button">Absolute pressure chart</string>
+    <string name="chart_temperature_radio_button">Temperature chart</string>
+    <string name="chart_average_radio_button">Average pressure chart</string>
     <string name="chart_average">Average</string>
     <string name="chart_channels">Channels</string>
     <string name="mega">M</string>
     <string name="kilo">k</string>
     <string name="pascal_short">Pa</string>
+    <string name="celsius_short">°C</string>
 
     <array name="tabs">
         <item>Chart</item>
         <item>Setting</item>
     </array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

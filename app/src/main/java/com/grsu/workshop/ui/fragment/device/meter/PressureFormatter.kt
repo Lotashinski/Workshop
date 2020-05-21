@@ -7,7 +7,7 @@ import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.grsu.workshop.R
 
-class CustomFormatter(
+class PressureFormatter(
     private val res: Resources
 ) : ValueFormatter() {
     private val barFormat = DecimalFormat("###,##0.00")

@@ -4,7 +4,8 @@ import com.grsu.workshop.device.ITransmitter
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 
-internal class BmpSource(override val uid: Byte, transmitter: ITransmitter): IBmpSource {
+internal class BmpSource(override val uid: Byte, transmitter: ITransmitter
+): IBmpSource {
 
     private val _transmitter = transmitter
 
@@ -20,6 +21,10 @@ internal class BmpSource(override val uid: Byte, transmitter: ITransmitter): IBm
 
     override val pressure: Long
         get() = (_value and 0x00000000ffffffff)
+
+    @ExperimentalUnsignedTypes
+    override val temperature: Long
+        get() = (_value and 0x7fffffff00000000) shr 32
 
     override var isActive: Boolean
         get() = _isActive

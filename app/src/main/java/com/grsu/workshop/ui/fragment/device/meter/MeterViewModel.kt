@@ -27,7 +27,8 @@ class MeterViewModel : ViewModel() {
 
     enum class Tab(val fragment: () -> Fragment) {
         ABSOLUTE({ MeterAbsoluteFragment() }),
-        AVERAGE({ MeterAverageFragment() });
+        AVERAGE({ MeterAverageFragment() }),
+        TEMPERATURE({ MeterTemperatureFragment() });
     }
 
     private val _meter = MutableLiveData<Meter>()

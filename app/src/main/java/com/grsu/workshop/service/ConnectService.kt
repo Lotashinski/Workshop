@@ -30,7 +30,7 @@ class ConnectService : Service() {
     }
 
     private val _lock = ReentrantLock()
-    private val _executor = Executors.newSingleThreadScheduledExecutor()
+    private val _executor = Executors.newScheduledThreadPool(4)
     private val _isLoadObservable = BehaviorSubject.create<Boolean>().apply {
         subscribeOn(Scheduler("service_is_load_worker"))
         onNext(false)
@@ -50,40 +50,42 @@ class ConnectService : Service() {
     override fun onBind(intent: Intent): IBinder = ConnectServiceBinder()
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun bindDevice(builder: IDeviceBuilder) {
         Log.d("service", "connect to device")
         _isLoadObservable.onNext(true)
-        // todo error message for user
-        try {
-            _lock.lock()
-            _executor.submit {
-                try {
-                    builder.connect { d ->
-                        _deviceObservable.onNext(d)
-                        _isLoadObservable.onNext(false)
-                        _messageObservable.onNext(R.string.message_device_connect)
-                        d.isCloseable.subscribe {
-                            Log.d("c_service", "observe close")
-                            _deviceObservable.onNext(ScannerDevice())
-                            _messageObservable.onNext(R.string.message_device_disconnect)
-                        }
-                    }
-                } catch (t: DeviceConnectException) {
-                    Log.e("c_service", "e", t)
-                    _messageObservable.onNext(R.string.message_device_connect_exception)
-                    _isLoadObservable.onNext(false)
-                    _deviceObservable.value.close()
-                    _deviceObservable.onNext(ScannerDevice())
-                }
 
-            }.get(10, TimeUnit.SECONDS)
-        } catch (t: Throwable) {
-            Log.e("c_service", "e", t)
-            _isLoadObservable.onNext(false)
-            _deviceObservable.onNext(ScannerDevice())
-        } finally {
-            _lock.unlock()
+        _executor.submit {
+            // todo error message for user
+            if (!_lock.isLocked)
+                try {
+                    _lock.lock()
+                    _executor.submit {
+                        try {
+                            builder.connect { d ->
+                                _deviceObservable.onNext(d)
+                                _isLoadObservable.onNext(false)
+                                _messageObservable.onNext(R.string.message_device_connect)
+                                d.isCloseable.subscribe {
+                                    Log.d("c_service", "observe close")
+                                    _deviceObservable.onNext(ScannerDevice())
+                                    _messageObservable.onNext(R.string.message_device_disconnect)
+                                }
+                            }
+                        } catch (t: DeviceConnectException) {
+                            Log.e("c_service", "e", t)
+                            _messageObservable.onNext(R.string.message_device_connect_exception)
+                            _isLoadObservable.onNext(false)
+                            _deviceObservable.value.close()
+                            _deviceObservable.onNext(ScannerDevice())
+                        }
+                    }.get(10, TimeUnit.SECONDS)
+                } catch (t: Throwable) {
+                    Log.e("c_service", "e", t)
+                    _isLoadObservable.onNext(false)
+                    _deviceObservable.onNext(ScannerDevice())
+                } finally {
+                    _lock.unlock()
+                }
         }
 
     }
@@ -92,5 +94,11 @@ class ConnectService : Service() {
         _deviceObservable.value.close()
         _deviceObservable.onNext(ScannerDevice())
         _messageObservable.onNext(R.string.message_device_disconnect)
+    }
+
+    override fun onDestroy() {
+        _executor.shutdownNow()
+        _deviceObservable.value.close()
+        super.onDestroy()
     }
 }

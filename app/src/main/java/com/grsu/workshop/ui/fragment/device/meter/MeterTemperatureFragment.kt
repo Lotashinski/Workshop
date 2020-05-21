@@ -18,7 +18,10 @@ import com.grsu.workshop.R
 import com.grsu.workshop.device.meter.IBmpSource
 import kotlin.properties.Delegates
 
-class MeterAbsoluteFragment : Fragment() {
+/**
+ * A simple [Fragment] subclass.
+ */
+class MeterTemperatureFragment : Fragment() {
 
     private val _materViewModel by activityViewModels<MeterViewModel>()
     private lateinit var _root: View
@@ -26,22 +29,20 @@ class MeterAbsoluteFragment : Fragment() {
     private lateinit var _formatter: ValueFormatter
     private var _textChartSize by Delegates.notNull<Float>()
 
+
     @ExperimentalUnsignedTypes
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Log.d("absolute_fragment", "created")
+        _root = inflater.inflate(R.layout.fragment_meter_temperature, container, false)
+        _chart = _root.findViewById(R.id.chart_temperature)
 
-        _root = inflater.inflate(R.layout.fragment_meter_absolute, container, false)
-        _chart = _root.findViewById(R.id.chart_absolute)
-
-        _formatter = PressureFormatter(resources)
         _textChartSize = resources.getDimension(R.dimen.chart_text_size)
-
+        _formatter = TemperatureFormatter(resources)
+        _chart.axisLeft.valueFormatter = _formatter
         _chart.description.isEnabled = false;
         _chart.drawOrder = arrayOf(CombinedChart.DrawOrder.BAR, CombinedChart.DrawOrder.LINE)
-        _chart.axisLeft.valueFormatter = _formatter
         _chart.axisLeft.textSize = _textChartSize
 
         val xAxis = _chart.xAxis
@@ -82,10 +83,11 @@ class MeterAbsoluteFragment : Fragment() {
 
         sources
             .forEachIndexed { index, source ->
+                Log.d("d", "" + source.temperature)
                 berEntries.add(
                     BarEntry(
                         index.toFloat(),
-                        source.pressure.toFloat()
+                        source.temperature.toFloat() / 10
                     )
                 )
             }
@@ -103,33 +105,11 @@ class MeterAbsoluteFragment : Fragment() {
         barDataSet.valueFormatter = _formatter
         barDataSet.valueTextSize = _textChartSize
 
-        val average = sources
-            .map { s -> s.pressure}
-            .average()
-            .toFloat()
-
-        val lineData = LineData()
-        val lineEntries = listOf(
-            Entry(-0.5f, average),
-            Entry(sources.size.toFloat() - 0.5f, average)
-        )
-        val lineDataSet = LineDataSet(lineEntries, resources.getString(R.string.chart_average))
-        lineDataSet.color = resources.getColor(R.color.color_average)
-        lineDataSet.lineWidth = 2.5f
-        lineDataSet.setDrawCircles(false)
-        lineDataSet.valueFormatter =
-            object : com.github.mikephil.charting.formatter.ValueFormatter() {
-                override fun getFormattedValue(value: Float): String = ""
-            }
-
-        lineData.addDataSet(lineDataSet)
-
         val cd = CombinedData()
         val barData = BarData(barDataSet)
         barData.setValueTextColor(R.color.color_text)
 
         cd.setData(barData)
-        cd.setData(lineData)
 
         _chart.data = cd
         val xAxis = _chart.xAxis

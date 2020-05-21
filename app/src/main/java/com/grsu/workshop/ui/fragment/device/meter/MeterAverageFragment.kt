@@ -38,7 +38,7 @@ class MeterAverageFragment : Fragment() {
         _root = inflater.inflate(R.layout.fragment_meter_average, container, false)
         _chart = _root.findViewById(R.id.chart_absolute)
 
-        _formatter = CustomFormatter(resources)
+        _formatter = PressureFormatter(resources)
         _textChartSize = resources.getDimension(R.dimen.chart_text_size)
 
         _chart.description.isEnabled = false;
