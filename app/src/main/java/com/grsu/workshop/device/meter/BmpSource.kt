@@ -1,5 +1,6 @@
 package com.grsu.workshop.device.meter
 
+import com.grsu.workshop.core.Scheduler
 import com.grsu.workshop.device.ITransmitter
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
@@ -9,7 +10,9 @@ internal class BmpSource(override val uid: Byte, transmitter: ITransmitter
 
     private val _transmitter = transmitter
 
-    private val _isActiveObservable = BehaviorSubject.create<Boolean>()
+    private val _isActiveObservable = BehaviorSubject.create<Boolean>().apply {
+        subscribeOn(Scheduler("bmp_source_update"))
+    }
 
     @Volatile
     private var _value: Long = 0L;

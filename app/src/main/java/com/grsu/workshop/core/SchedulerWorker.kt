@@ -1,4 +1,4 @@
-package com.grsu.workshop.service
+package com.grsu.workshop.core
 
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.Disposable
@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 
 class SchedulerWorker(val title: String) : Scheduler.Worker() {
 
-    private val _executor = Executors.newScheduledThreadPool(4)
+    private val _executor = Executors.newScheduledThreadPool(4, ThreadFactory("scheduled_worker_$title"))
 
     override fun isDisposed(): Boolean {
         return _executor.isTerminated

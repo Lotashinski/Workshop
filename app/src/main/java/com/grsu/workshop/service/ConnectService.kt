@@ -1,16 +1,12 @@
 package com.grsu.workshop.service
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.Binder
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.grsu.workshop.R
+import com.grsu.workshop.core.Scheduler
 import com.grsu.workshop.device.DeviceConnectException
 import com.grsu.workshop.device.IDevice
 import com.grsu.workshop.device.IDeviceBuilder
@@ -18,6 +14,7 @@ import com.grsu.workshop.device.scanner.ScannerDevice
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 
@@ -30,7 +27,7 @@ class ConnectService : Service() {
     }
 
     private val _lock = ReentrantLock()
-    private val _executor = Executors.newScheduledThreadPool(4)
+    private val _executor = Executors.newScheduledThreadPool(2, com.grsu.workshop.core.ThreadFactory("service_thread") )
     private val _isLoadObservable = BehaviorSubject.create<Boolean>().apply {
         subscribeOn(Scheduler("service_is_load_worker"))
         onNext(false)
@@ -78,7 +75,7 @@ class ConnectService : Service() {
                             _deviceObservable.value.close()
                             _deviceObservable.onNext(ScannerDevice())
                         }
-                    }.get(10, TimeUnit.SECONDS)
+                    }.get(15, TimeUnit.SECONDS)
                 } catch (t: Throwable) {
                     Log.e("c_service", "e", t)
                     _isLoadObservable.onNext(false)

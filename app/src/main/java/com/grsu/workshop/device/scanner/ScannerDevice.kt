@@ -1,6 +1,7 @@
 package com.grsu.workshop.device.scanner
 
 import android.bluetooth.BluetoothAdapter
+import com.grsu.workshop.core.Scheduler
 import com.grsu.workshop.device.*
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
@@ -8,7 +9,9 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject
 
 class ScannerDevice : IDevice {
 
-    private val _isClose = BehaviorSubject.create<IDevice>()
+    private val _isClose = BehaviorSubject.create<IDevice>().apply {
+        subscribeOn(Scheduler("scanner_close"))
+    }
     private val _btAdapter = BluetoothAdapter.getDefaultAdapter()
     private val _btDevices = BluetoothDevices(_btAdapter)
 
@@ -21,6 +24,7 @@ class ScannerDevice : IDevice {
 
 
     private val _devicesObservable = BehaviorSubject.create<List<IDeviceBuilder>>().apply {
+        subscribeOn(Scheduler("scanner_devices_update"))
         onNext(
             _btDevices.devices
         )

@@ -13,14 +13,23 @@ class PressureFormatter(
     private val barFormat = DecimalFormat("###,##0.00")
     private val axisFormat = DecimalFormat("###,##0")
 
+    @Volatile
+    private var _delta: Float = 0f;
+
+    var delta: Float
+        get() = _delta
+        set(value) {
+            _delta = value
+        }
+
     override fun getBarLabel(barEntry: BarEntry?): String {
-        val y : Float = barEntry?.y ?: 0F
+        val y : Float = (barEntry?.y ?: 0F)
 
         return barFormat.format(y / 1000)
     }
 
     override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-        var y : Float = value
+        var y : Float = value + delta
 
         val prefix = when{
             y >= 0 -> ""

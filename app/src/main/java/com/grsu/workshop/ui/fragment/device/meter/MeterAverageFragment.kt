@@ -6,6 +6,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.RelativeLayout
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.github.mikephil.charting.charts.CombinedChart
@@ -26,9 +28,10 @@ class MeterAverageFragment : Fragment() {
     private val _materViewModel by activityViewModels<MeterViewModel>()
     private lateinit var _root: View
     private lateinit var _chart: CombinedChart
-    private lateinit var _formatter: ValueFormatter
+    private lateinit var _formatter: PressureFormatter
     private var _textChartSize by Delegates.notNull<Float>()
 
+    @ExperimentalUnsignedTypes
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -36,7 +39,14 @@ class MeterAverageFragment : Fragment() {
         Log.d("average_fragment", "created")
 
         _root = inflater.inflate(R.layout.fragment_meter_average, container, false)
-        _chart = _root.findViewById(R.id.chart_absolute)
+
+        val frame = _root.findViewById<RelativeLayout>(R.id.frame_average)
+
+        val param = frame.layoutParams
+
+        _chart = CombinedChart(context)
+        _chart.layoutParams = ViewGroup.LayoutParams(param.width, param.height)
+        frame.addView(_chart)
 
         _formatter = PressureFormatter(resources)
         _textChartSize = resources.getDimension(R.dimen.chart_text_size)
@@ -84,6 +94,8 @@ class MeterAverageFragment : Fragment() {
             .map { s -> s.pressure}
             .average()
             .toFloat()
+
+        _formatter.delta = average
 
         val berEntries = ArrayList<BarEntry>()
 

@@ -34,7 +34,7 @@ class MeterViewModel : ViewModel() {
     private val _meter = MutableLiveData<Meter>()
     private val _sources = MutableLiveData<List<IBmpSource>>()
     private val _powerSource = MutableLiveData<IPowerSource>()
-    private val _tab = MutableLiveData<Tab>(Tab.ABSOLUTE)
+    private val _tab = MutableLiveData(Tab.ABSOLUTE)
 
     val meter: LiveData<Meter> = _meter
     val sources: LiveData<List<IBmpSource>> = _sources

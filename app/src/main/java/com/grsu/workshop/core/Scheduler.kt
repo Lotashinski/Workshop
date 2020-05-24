@@ -1,4 +1,4 @@
-package com.grsu.workshop.service
+package com.grsu.workshop.core
 
 import io.reactivex.rxjava3.core.Scheduler
 

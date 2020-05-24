@@ -3,6 +3,7 @@ package com.grsu.workshop.device
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.util.Log
+import com.grsu.workshop.core.ThreadFactory
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -19,7 +20,7 @@ class BluetoothTransmitter(btDevice: BluetoothDevice) :
     }
 
     private val _lock = ReentrantLock()
-    private val _executor = Executors.newSingleThreadExecutor()
+    private val _executor = Executors.newSingleThreadExecutor(ThreadFactory("bt_transmit"))
 
     private val _socket: BluetoothSocket
     private val _inputStream: InputStream

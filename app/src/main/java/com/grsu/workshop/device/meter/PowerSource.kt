@@ -1,5 +1,6 @@
 package com.grsu.workshop.device.meter
 
+import com.grsu.workshop.core.Scheduler
 import com.grsu.workshop.device.ITransmitter
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
@@ -9,7 +10,9 @@ internal class PowerSource(transmitter: ITransmitter): IPowerSource {
     private val _transmitter = transmitter
     @Volatile
     private var _value: Long = 0L;
-    private val _isUpdateObservable = BehaviorSubject.create<PowerSource>()
+    private val _isUpdateObservable = BehaviorSubject.create<PowerSource>().apply {
+        subscribeOn(Scheduler("power_source_update"))
+    }
 
     val isUpdateObservable: Observable<PowerSource> = _isUpdateObservable
 

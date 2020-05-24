@@ -34,6 +34,12 @@ class MeterSettingFragment : Fragment() {
         _recyclerView = _root.findViewById(R.id.recycler_channel_set)
         _recyclerView.setHasFixedSize(true)
 
+        when(_meterViewModel.tab.value){
+            MeterViewModel.Tab.ABSOLUTE -> _absoluteButton.isChecked = true
+            MeterViewModel.Tab.AVERAGE -> _averageButton.isChecked = true
+            MeterViewModel.Tab.TEMPERATURE -> _temperatureButton.isChecked = true
+        }
+
         _absoluteButton.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked)
                 _meterViewModel.selectTab(MeterViewModel.Tab.ABSOLUTE)
@@ -62,6 +68,7 @@ class MeterSettingFragment : Fragment() {
                 )
             )
         })
+
 
         return _root
     }

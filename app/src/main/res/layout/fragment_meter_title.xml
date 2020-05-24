@@ -36,7 +36,7 @@
     <Button
         android:id="@+id/button_close"
         android:layout_width="45dp"
-        android:layout_height="44dp"
+        android:layout_height="45dp"
         android:background="@mipmap/ic_close_scr"
         android:padding="@dimen/appbar_padding"
         app:layout_constraintBottom_toBottomOf="parent"

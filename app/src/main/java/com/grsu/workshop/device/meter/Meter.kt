@@ -1,6 +1,8 @@
 package com.grsu.workshop.device.meter
 
 import android.util.Log
+import com.grsu.workshop.core.Scheduler
+import com.grsu.workshop.core.ThreadFactory
 import com.grsu.workshop.device.IDevice
 import com.grsu.workshop.device.ITransmitter
 import com.grsu.workshop.device.IUiAdapter
@@ -25,13 +27,13 @@ class Meter(transmitter: ITransmitter) : IDevice {
     override val isCloseable: Observable<IDevice> = _isClose
 
     private val _transmitter = transmitter
-    private val _updateObservable = BehaviorSubject.create<Meter>().apply { onNext(this@Meter) }
-    private val _meterUpdater = MeterUpdater(this)
-    private val _executor = Executors.newSingleThreadExecutor { r ->
-        Thread(r).apply {
-            name = "meter thread "
-        }
+    private val _updateObservable = BehaviorSubject.create<Meter>().apply {
+        subscribeOn(Scheduler("bmp_source_update"))
+        onNext(this@Meter)
     }
+    private val _meterUpdater = MeterUpdater(this)
+    private val _executor = Executors.newSingleThreadExecutor(ThreadFactory("meter_update"))
+
     private val _bmps = listOf(
         BmpSource(1, _transmitter),
         BmpSource(2, _transmitter),
