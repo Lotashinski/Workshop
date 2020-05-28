@@ -27,7 +27,7 @@ class ConnectService : Service() {
     }
 
     private val _lock = ReentrantLock()
-    private val _executor = Executors.newScheduledThreadPool(2, com.grsu.workshop.core.ThreadFactory("service_thread") )
+    private val _executor = Executors.newScheduledThreadPool(3, com.grsu.workshop.core.ThreadFactory("service_thread") )
     private val _isLoadObservable = BehaviorSubject.create<Boolean>().apply {
         subscribeOn(Scheduler("service_is_load_worker"))
         onNext(false)
@@ -46,38 +46,44 @@ class ConnectService : Service() {
 
     override fun onBind(intent: Intent): IBinder = ConnectServiceBinder()
 
+    private fun connect(builder: IDeviceBuilder){
+        try {
+            builder.connect { d ->
+                Log.d("service", "start connect")
+                _deviceObservable.onNext(d)
+                _isLoadObservable.onNext(false)
+                _messageObservable.onNext(R.string.message_device_connect)
+                d.isCloseable.subscribe {
+                    Log.d("service", "observe close")
+                    _deviceObservable.onNext(ScannerDevice())
+                    _messageObservable.onNext(R.string.message_device_disconnect)
+                }
+                d.isCloseable.subscribe{
+                    Log.d("service", "call close in device")
+                }
+            }
+        } catch (t: DeviceConnectException) {
+            Log.e("service", "e", t)
+            _messageObservable.onNext(R.string.message_device_connect_exception)
+            _isLoadObservable.onNext(false)
+            _deviceObservable.value.close()
+            _deviceObservable.onNext(ScannerDevice())
+        }
+    }
 
     fun bindDevice(builder: IDeviceBuilder) {
         Log.d("service", "connect to device")
         _isLoadObservable.onNext(true)
 
         _executor.submit {
-            // todo error message for user
             if (!_lock.isLocked)
                 try {
                     _lock.lock()
                     _executor.submit {
-                        try {
-                            builder.connect { d ->
-                                _deviceObservable.onNext(d)
-                                _isLoadObservable.onNext(false)
-                                _messageObservable.onNext(R.string.message_device_connect)
-                                d.isCloseable.subscribe {
-                                    Log.d("c_service", "observe close")
-                                    _deviceObservable.onNext(ScannerDevice())
-                                    _messageObservable.onNext(R.string.message_device_disconnect)
-                                }
-                            }
-                        } catch (t: DeviceConnectException) {
-                            Log.e("c_service", "e", t)
-                            _messageObservable.onNext(R.string.message_device_connect_exception)
-                            _isLoadObservable.onNext(false)
-                            _deviceObservable.value.close()
-                            _deviceObservable.onNext(ScannerDevice())
-                        }
+                        connect(builder)
                     }.get(15, TimeUnit.SECONDS)
                 } catch (t: Throwable) {
-                    Log.e("c_service", "e", t)
+                    Log.e("service", "e", t)
                     _isLoadObservable.onNext(false)
                     _deviceObservable.onNext(ScannerDevice())
                 } finally {

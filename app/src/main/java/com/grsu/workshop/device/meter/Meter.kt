@@ -7,8 +7,8 @@ import com.grsu.workshop.device.IDevice
 import com.grsu.workshop.device.ITransmitter
 import com.grsu.workshop.device.IUiAdapter
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.subjects.AsyncSubject
 import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.subjects.PublishSubject
 import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -17,12 +17,12 @@ import java.util.concurrent.locks.ReentrantLock
 class Meter(transmitter: ITransmitter) : IDevice {
 
     private companion object Constants {
-        private const val REQUEST_TIMEOUT = 980L
+        private const val REQUEST_TIMEOUT = 990L
     }
 
     private val _lock = ReentrantLock()
 
-    private val _isClose = AsyncSubject.create<IDevice>()
+    private val _isClose = PublishSubject.create<IDevice>()
 
     override val isCloseable: Observable<IDevice> = _isClose
 
@@ -55,7 +55,6 @@ class Meter(transmitter: ITransmitter) : IDevice {
 
     init {
         Log.d("meter", "init")
-        _bmps.forEach { s -> s.isActiveObservable.subscribe { update() } }
         _meterUpdater.startTransmit()
     }
 
@@ -63,6 +62,7 @@ class Meter(transmitter: ITransmitter) : IDevice {
         try {
             Log.d("meter", "call update")
             val cl = System.currentTimeMillis();
+            Log.d("meter", "locked")
             _lock.lock()
             _executor.submit {
                 bmpSources
@@ -73,9 +73,14 @@ class Meter(transmitter: ITransmitter) : IDevice {
             }.get(REQUEST_TIMEOUT, TimeUnit.MILLISECONDS)
             Log.d("meter", "time " + (System.currentTimeMillis() - cl))
         } catch (t: Throwable) {
-            close()
             Log.e("meter", "exception", t)
+            Log.d("meter", "unlock")
+            _lock.unlock()
+            close()
+            Log.d("meter", "locked")
+            _lock.lock()
         }finally {
+            Log.d("meter", "unlock")
             _lock.unlock()
         }
     }
@@ -83,13 +88,16 @@ class Meter(transmitter: ITransmitter) : IDevice {
     override fun close() {
         Log.d("meter", "call close")
         try {
+            Log.d("meter", "locked")
             _lock.lock()
             _executor.shutdown()
             _meterUpdater.close()
             bmpSources.forEach { s -> s.close() }
             powerSource.close()
             _updateObservable.onComplete()
+            Log.d("meter", "send close signal")
             _isClose.onNext(this)
+            _updateObservable.onComplete()
             _isClose.onComplete()
             _transmitter.close()
         }catch (io: IOException){

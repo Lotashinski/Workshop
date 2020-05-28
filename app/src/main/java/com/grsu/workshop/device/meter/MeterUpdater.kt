@@ -19,34 +19,26 @@ class MeterUpdater(meter: Meter) : Closeable {
     @Volatile
     private var _task: ScheduledFuture<*>? = null
     private val _meter = meter
-    private val _lock = ReentrantLock()
 
     private fun update() {
-        try {
-            _lock.lock()
-            Log.d("updater", "update")
-            _meter.update()
-        } catch (e: Throwable) {
-            Log.e("updater", "update", e);
-        } finally {
-            _lock.unlock()
-        }
+        _meter.update()
     }
 
     fun startTransmit() {
-        _task = _executor.scheduleAtFixedRate({
-            update()
-        }, PERIOD / 10, PERIOD, TimeUnit.MILLISECONDS)
+//        _task = _executor.scheduleAtFixedRate({
+//            update()
+//        }, PERIOD / 10, PERIOD, TimeUnit.MILLISECONDS)
+         _meter.updateObservable.subscribe{
+            _executor.submit {
+                it.update()
+            }
+        }
     }
 
     override fun close() {
+        Log.d("updater", "call close")
         _executor.submit {
-            try {
-                _lock.lock()
                 _task?.cancel(false)
-            } finally {
-                _lock.unlock()
-            }
         }.get()
         _executor.shutdown()
     }

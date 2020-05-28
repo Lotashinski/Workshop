@@ -27,21 +27,23 @@ class BluetoothTransmitter(btDevice: BluetoothDevice) :
     private val _outputStream: OutputStream
 
     init {
+        Log.d("transmitter", "start init")
         val uids = btDevice.uuids ?: throw UnsupportedDeviceException()
         val uid = uids.first()
         _socket = btDevice.createRfcommSocketToServiceRecord(uid.uuid)
 
-        try {
-            if (!_socket.isConnected) {
-                _socket.connect()
-            }
-        }catch (io: IOException){
-            Log.e("bt_transmitter", "connect exception", io)
+
+        if (!_socket.isConnected) {
+             Log.d("transmitter", "connecting")
+             _socket.connect()
+             Log.d("transmitter", "connected")
         }
 
+        Log.d("transmitter", "open socket")
         _inputStream = _socket.inputStream
         _outputStream = _socket.outputStream
-        _inputStream.read(ByteArray(8))
+        Log.d("transmitter", "socket is open")
+        Log.d("transmitter", "init close")
     }
 
 
